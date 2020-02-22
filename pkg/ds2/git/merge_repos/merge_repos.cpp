@@ -165,6 +165,21 @@ void gitEmptyCommit(strv_ref envp, const char* message) {
 	return spawn_wait_throw<GitEmptyCommit>(cmd, envp);
 }
 
+// helper type used in run() below - just bundles the envp around for convenience.
+struct Git {
+	strv_ref envp;
+
+	inline void init() {
+		return gitInit(envp);
+	}
+	inline void config(const char* key, const char* value) {
+		return gitConfig(envp, key, value);
+	}
+	inline void empty_commit(const char* message) {
+		return gitEmptyCommit(envp, message);
+	}
+};
+
 
 
 
@@ -185,15 +200,16 @@ int check_usage(int argc) {
 // dummy type hacks to exploit glibc's typename based crash handler.
 struct BaseDir {};
 struct RepoDir {};
-void run(strv_ref envp, const char* basedir, const char* reponame) {
+template <typename Git>
+void run(Git& git, const char* basedir, const char* reponame) {
 	cd<BaseDir>(basedir);
 	ccd<RepoDir>(reponame);
 	// probably should use a git virtual instead of passing envp everywhere...
-	gitInit(envp);
+	git.init();
 	// this can always be overriden later.
-	gitConfig(envp, "user.name", "merge_repos");
-	gitConfig(envp, "user.email", "merge_repos.program@localhost");
-	gitEmptyCommit(envp, "repository merge initial commit");
+	git.config("user.name", "merge_repos");
+	git.config("user.email", "merge_repos.program@localhost");
+	git.empty_commit("repository merge initial commit");
 }
 
 
@@ -206,8 +222,9 @@ int main(int argc, char** argv, char** envp) {
 	if (r != 0) return r;
 	basedir = argv[1];
 	reponame = argv[2];
+	Git git {envp};
 	try {
-		run(envp, basedir, reponame);
+		run(git, basedir, reponame);
 	} catch (const MkdirException<RepoDir>& e) {
 		if (e.sys == EEXIST) {
 			fputs("# Target repository will only be created clean. Please remove the old one.\n", stderr);
