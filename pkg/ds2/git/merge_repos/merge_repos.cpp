@@ -210,6 +210,12 @@ void run(Git& git, const char* basedir, const char* reponame) {
 	git.config("user.name", "merge_repos");
 	git.config("user.email", "merge_repos.program@localhost");
 	git.empty_commit("repository merge initial commit");
+
+	// TODO: fetching individual repositories into git store.
+	// git fetch --no-tags $path refs/*:refs/monorepo_merge/$name/*
+	// --no-tags is just there to prevent tags polluting the main tag list;
+	// they won't appear in git tag after but will be stored as an accessible ref still
+	// (despite what git tag's output may indicate).
 }
 
 
