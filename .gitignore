@@ -1,2 +1,4 @@
 **/a.out
 **/*.bin
+**/.ninja_deps
+**/.ninja_log
