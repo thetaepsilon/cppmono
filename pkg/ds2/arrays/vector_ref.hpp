@@ -1,6 +1,7 @@
 #pragma once
 #include <cstddef>
 #include "array_ref.hpp"
+#include "range_pointer.hpp"
 
 /*
 In reference to the STL's std::vector,
@@ -30,6 +31,14 @@ namespace ds2::array {
 		template <std::size_t N>
 		constexpr inline vector_ref(const array_ref<T, N>& ref):
 			data(ref.unsafe()), len(N) {}
+
+		// range-for protocol
+		// (should work with C++14, begin and end are same type)
+		constexpr inline auto begin() { return range_pointer<T>(data); }
+		constexpr inline auto end() { return range_pointer<T>(&data[len]); }
+
+		// allow unsafe random access but make it stand out.
+		constexpr inline T* unsafe() { return data; }
 	};
 }
 
