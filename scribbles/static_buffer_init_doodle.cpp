@@ -1,15 +1,10 @@
 
 #include <cstddef>
-#include <ds2/ppmacros/paste.h>
+#include <ds2/ppmacros/unique_name.h>
 
 constexpr inline size_t operator "" _static_length(const char*, size_t length) {
     return length;
 }
-
-#define __ds2_unique_name(x, label) \
-	__ds2_ppmacros_paste8(__, x, , , __anon__line, __LINE__, __, label)
-
-
 
 
 
@@ -18,7 +13,7 @@ constexpr inline size_t operator "" _static_length(const char*, size_t length) {
 	constexpr R n = f(tmpname, s ## _static_length)
 
 #define __ds2_arrays_buffer_fromlit(T, len, s, R, n, f) \
-    __ds2_arrays_buffer_fromlit_inner(__ds2_unique_name(x, buffer_storage), T, len, s, R, n, f)
+    __ds2_arrays_buffer_fromlit_inner(__ds2__ppmacros__unique_name(x, buffer_storage), T, len, s, R, n, f)
 
 
 template <typename T>
