@@ -1,22 +1,17 @@
 
 #include <cstddef>
+#include <ds2/ppmacros/paste.h>
 
 constexpr inline size_t operator "" _static_length(const char*, size_t length) {
     return length;
 }
 
-
-
-#define __ds2_utils_macro_paste5_(x, y, z, a, b) x ## y ## z ## a ## b
-#define __ds2_utils_macro_paste5(x, y, z, a, b) \
-    __ds2_utils_macro_paste5_(x, y, z, a, b)
-#define __ds2_utils_macro_paste8_(x, y, z, a, b, c, d, e) \
-    x ## y ## z ## a ## b ## c ## d ## e
-#define __ds2_utils_macro_paste8(x, y, z, a, b, c, d, e) \
-	__ds2_utils_macro_paste8_(x, y, z, a, b, c, d, e)
-
 #define __ds2_unique_name(x, label) \
-	__ds2_utils_macro_paste8(__, x, , , __anon__line, __LINE__, __, label)
+	__ds2_ppmacros_paste8(__, x, , , __anon__line, __LINE__, __, label)
+
+
+
+
 
 #define __ds2_arrays_buffer_fromlit_inner(tmpname, T, len, s, R, n, f) \
 	constexpr T tmpname [ len ] = s;\
