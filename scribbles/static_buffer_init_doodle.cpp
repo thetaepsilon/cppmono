@@ -1,11 +1,9 @@
 
 #include <cstddef>
 #include <ds2/ppmacros/unique_name.h>
+#include <ds2/literals/strlen.hpp>
 
-constexpr inline size_t operator "" _length(const char*, size_t length) {
-    return length;
-}
-
+using namespace ds2::literals::strlen;
 
 
 #define __ds2_arrays_buffer_fromlit_named(tmpname, T, len, s, R, n, f) \
