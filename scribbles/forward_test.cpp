@@ -1,4 +1,5 @@
 #include "forward.hpp"
+using namespace ds2::microstl::utility::forward;
 
 struct S {};
 void l(S&);
