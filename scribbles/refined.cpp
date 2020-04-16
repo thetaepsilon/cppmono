@@ -1,3 +1,5 @@
+#include <ds2/microstl/type_traits/enable_if.hpp>
+
 /*
 Values of TheRefined type that are proven to satisfy the property designated by Constraint.
 the Refined struct holds a value of TheRefined that cannot be altered directly
@@ -26,9 +28,58 @@ private:
 	// the consumer would potentially require stunts like std::launder everywhere.
 	// instead just protect the value in a more typical way using member functions.
 	TheRefined x;
+
+	template <typename T>
+	static T&& declval();
 public:
-	// TheRefined() = delete;
-	// beware the rule of five.
-	
-}
+	const TheRefined& value() { return x; }
+
+	// Allow construction when the constraint explicitly allows for it,
+	// *AND* the types automatically decay to something the unconstrained type understands.
+	// This is not without some traps though;
+	// in particular, certain types of would-be "narrowing" conversions
+	// (e.g. long -> short) on the standard (u)int types can yield surprises;
+	// always check with a dumb function first.
+	// additionally, any preconditions must be triggered in unevaluated contexts,
+	// for instance by using enable_if to whack overload resolution;
+	// in particular static_assert() *will not fire* in unevalated contexts!
+	template <
+		typename... Args,
+		typename = decltype(Constraint::passive(declval<Args>()...)),
+		typename = decltype(TheRefined(declval<Args>()...))
+	>
+	constexpr inline Refined(Args&&... args):
+		x(static_cast<Args&&>(args)...) {}
+};
+
+
+
+
+
+
+
+struct strvec {
+	const char* data;
+	unsigned int len;
+
+	template <unsigned int N>
+	constexpr strvec(const char (&data)[N]): data(data), len(N) {}
+};
+
+// example: an array at most N elements in size.
+template <unsigned int N>
+struct at_most {
+	template <
+		unsigned int L,
+		typename = ds2::microstl::type_traits::enable_if_t<L <= N>
+	>
+	constexpr static void passive(const char (&data)[L]) {}
+};
+extern const Refined<strvec, at_most<5>> test1;
+constexpr const Refined<strvec, at_most<5>> test1("abc");
+
+// kaboom: no overload present to construct this.
+extern const Refined<strvec, at_most<5>> test2;
+constexpr const Refined<strvec, at_most<5>> test2("abcdef");
+
 
