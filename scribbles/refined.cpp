@@ -36,8 +36,17 @@ private:
 	// so we (unfortunately) must repeat ourselves a little to validate everything.
 	template <typename T> constexpr static bool valid_type = true;
 
+	// TODO: yeah, I should probably at least have this in a header later,
+	// even if I'm not using the STL one...
 	template <typename T>
 	static T&& declval();
+
+	// helper using (C++14 only for the moment, sorry...)
+	// that evaluates to a constraint's passive "constructor" type (see below).
+	// we're not actually that bothered about what it is;
+	// only that it either produces one or substitution fails.
+	template <typename... Args>
+	using passive_t = decltype(Constraint::passive(declval<Args>()...));
 public:
 	constexpr inline const TheRefined& value() { return x; }
 
@@ -52,7 +61,7 @@ public:
 	// in particular static_assert() *will not fire* in unevalated contexts!
 	template <
 		typename... Args,
-		typename = decltype(Constraint::passive(declval<Args>()...)),
+		typename = passive_t<Args...>,
 		typename = decltype(TheRefined(declval<Args>()...))
 	>
 	constexpr inline Refined(Args&&... args):
@@ -61,7 +70,7 @@ public:
 		// we don't need to check that TheRefined constructs,
 		// as x() above would otherwise be ill-formed.
 		// but check that the SFINAE parameter for ::passive() wasn't tampered with!
-		static_assert(valid_type<decltype(Constraint::passive(declval<Args>()...))>);
+		static_assert(valid_type<passive_t<Args...>>);
 	}
 };
 
