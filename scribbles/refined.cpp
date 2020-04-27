@@ -29,10 +29,17 @@ private:
 	// instead just protect the value in a more typical way using member functions.
 	TheRefined x;
 
+	// helper here: becomes an ill-formed expression if type evaluation fails.
+	// we use SFINAE techniques below to avoid causing unnecessary explosions,
+	// *but* we're also relying on the constraint allowing conversions for safety.
+	// now one could technically sabotage the unnamed SFINAE type parameters,
+	// so we (unfortunately) must repeat ourselves a little to validate everything.
+	template <typename T> constexpr static bool valid_type = true;
+
 	template <typename T>
 	static T&& declval();
 public:
-	const TheRefined& value() { return x; }
+	constexpr inline const TheRefined& value() { return x; }
 
 	// Allow construction when the constraint explicitly allows for it,
 	// *AND* the types automatically decay to something the unconstrained type understands.
@@ -49,7 +56,13 @@ public:
 		typename = decltype(TheRefined(declval<Args>()...))
 	>
 	constexpr inline Refined(Args&&... args):
-		x(static_cast<Args&&>(args)...) {}
+		x(static_cast<Args&&>(args)...)
+	{
+		// we don't need to check that TheRefined constructs,
+		// as x() above would otherwise be ill-formed.
+		// but check that the SFINAE parameter for ::passive() wasn't tampered with!
+		static_assert(valid_type<decltype(Constraint::passive(declval<Args>()...))>);
+	}
 };
 
 
@@ -73,13 +86,15 @@ struct at_most {
 		unsigned int L,
 		typename = ds2::microstl::type_traits::enable_if_t<L <= N>
 	>
-	constexpr static void passive(const char (&data)[L]) {}
+	constexpr static void passive(const char (&data)[L]) {
+		static_assert(L <= N);
+	}
 };
 extern const Refined<strvec, at_most<5>> test1;
 constexpr const Refined<strvec, at_most<5>> test1("abc");
 
 // kaboom: no overload present to construct this.
-extern const Refined<strvec, at_most<5>> test2;
-constexpr const Refined<strvec, at_most<5>> test2("abcdef");
+//extern const Refined<strvec, at_most<5>> test2;
+//constexpr const Refined<strvec, at_most<5>> test2("abcdef");
 
 
