@@ -1,0 +1,9 @@
+#!/bin/sh
+
+find ./test \
+	-name '*.test.hpp' \( \
+		\( \
+			-exec c++17check -I ./pkg/ {} \; \
+			-print \
+		\) -o -quit \
+	\);
