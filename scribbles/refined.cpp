@@ -41,12 +41,17 @@ private:
 	template <typename T>
 	static T&& declval();
 
-	// helper using (C++14 only for the moment, sorry...)
-	// that evaluates to a constraint's passive "constructor" type (see below).
-	// we're not actually that bothered about what it is;
-	// only that it either produces one or substitution fails.
+	// re-write time...
+	// note to self, a templated using apparently is not always guaranteed to be unevaluated.
+	// a plain using instead of this struct wrapping caused problems with missing member errors.
 	template <typename... Args>
-	using passive_t = decltype(Constraint::passive(declval<Args>()...));
+	struct TheRefinedProof {
+		using type = decltype(TheRefined::constrained(declval<Constraint>(), declval<Args>()...));
+	};
+	template <typename... Args>
+	struct ConstraintProof {
+		using type = decltype(Constraint::constrain(declval<TheRefined>(), declval<Args>()...));
+	};
 public:
 	constexpr inline const TheRefined& value() { return x; }
 
@@ -61,16 +66,16 @@ public:
 	// in particular static_assert() *will not fire* in unevalated contexts!
 	template <
 		typename... Args,
-		typename = passive_t<Args...>,
-		typename = decltype(TheRefined(declval<Args>()...))
+		typename = decltype(TheRefined(declval<Args>()...)),
+		typename = typename TheRefinedProof<Args...>::type,
+		typename = typename ConstraintProof<Args...>::type
 	>
 	constexpr inline Refined(Args&&... args):
 		x(static_cast<Args&&>(args)...)
 	{
-		// we don't need to check that TheRefined constructs,
-		// as x() above would otherwise be ill-formed.
-		// but check that the SFINAE parameter for ::passive() wasn't tampered with!
-		static_assert(valid_type<passive_t<Args...>>);
+		// Constructor template arguments can never be explicitly specified,
+		// no need to worry about any "hacks" of the last two guards.
+		// the constructor call has to make sense in any case.
 	}
 };
 
@@ -79,6 +84,8 @@ public:
 
 
 
+template <unsigned int N>
+struct at_most;
 
 struct strvec {
 	const char* data;
@@ -86,6 +93,13 @@ struct strvec {
 
 	template <unsigned int N>
 	constexpr strvec(const char (&data)[N]): data(data), len(N) {}
+
+	template <
+		unsigned int M,
+		unsigned int L,
+		typename = typename ds2::microstl::type_traits::enable_if<L <= M>::type
+	>
+	static void constrained(at_most<M>, const char (&data)[L]);
 };
 
 // example: an array at most N elements in size.
@@ -95,9 +109,7 @@ struct at_most {
 		unsigned int L,
 		typename = ds2::microstl::type_traits::enable_if_t<L <= N>
 	>
-	constexpr static void passive(const char (&data)[L]) {
-		static_assert(L <= N);
-	}
+	static void constrain(strvec, const char (&data)[L]);
 };
 extern const Refined<strvec, at_most<5>> test1;
 constexpr const Refined<strvec, at_most<5>> test1("abc");
