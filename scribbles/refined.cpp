@@ -1,4 +1,5 @@
 #include <ds2/microstl/type_traits/enable_if.hpp>
+#include <ds2/microstl/declval.hpp>
 
 /*
 Values of TheRefined type that are proven to satisfy the property designated by Constraint.
@@ -41,34 +42,29 @@ private:
 	template <typename T>
 	static T&& declval();
 
-	// re-write time...
-	// note to self, a templated using apparently is not always guaranteed to be unevaluated.
-	// a plain using instead of this struct wrapping caused problems with missing member errors.
 	template <typename... Args>
-	struct TheRefinedProof {
-		using type = decltype(TheRefined::constrained(declval<Constraint>(), declval<Args>()...));
-	};
+	using TheRefinedProof =
+		decltype(TheRefined::constrained(declval<Constraint>(), declval<Args>()...));
+
 	template <typename... Args>
-	struct ConstraintProof {
-		using type = decltype(Constraint::constrain(declval<TheRefined>(), declval<Args>()...));
-	};
+	using ConstraintProof =
+		decltype(Constraint::constrain(declval<TheRefined>(), declval<Args>()...));
+
 public:
 	constexpr inline const TheRefined& value() { return x; }
 
-	// Allow construction when the constraint explicitly allows for it,
-	// *AND* the types automatically decay to something the unconstrained type understands.
-	// This is not without some traps though;
-	// in particular, certain types of would-be "narrowing" conversions
-	// (e.g. long -> short) on the standard (u)int types can yield surprises;
-	// always check with a dumb function first.
-	// additionally, any preconditions must be triggered in unevaluated contexts,
-	// for instance by using enable_if to whack overload resolution;
-	// in particular static_assert() *will not fire* in unevalated contexts!
+	// Allow "passive" satisfaction of constraints if both the constrained and the constraint agree
+	// (by use of declared-but-undefined static members)
+	// that a certain set of input types would make TheConstrained satisfy Constraint right out the gate
+	// (and that TheConstrained is naturally constructable from those inputs anyway).
+	// The definitions of the "proofs" above require that the static member functions
+	// on TheConstrained and Constraint respectively "accept" the other (via a declval parameter),
+	// establishing a sort of "two-way friend" relationship for refinement purposes.
 	template <
 		typename... Args,
 		typename = decltype(TheRefined(declval<Args>()...)),
-		typename = typename TheRefinedProof<Args...>::type,
-		typename = typename ConstraintProof<Args...>::type
+		typename = TheRefinedProof<Args...>,
+		typename = ConstraintProof<Args...>
 	>
 	constexpr inline Refined(Args&&... args):
 		x(static_cast<Args&&>(args)...)
@@ -111,11 +107,30 @@ struct at_most {
 	>
 	static void constrain(strvec, const char (&data)[L]);
 };
-extern const Refined<strvec, at_most<5>> test1;
-constexpr const Refined<strvec, at_most<5>> test1("abc");
 
+// sigh. see is_detected.cpp, we're stuck with boilerplating this ourselves.
+template <typename T, typename... Args>
+constexpr bool can_construct_(...) { return false; }
+template <typename T, typename... Args, typename = decltype(T(ds2::microstl::declval<Args>()...))>
+constexpr bool can_construct_(int) { return true; }
+template <typename... Args>
+constexpr bool can_construct = can_construct_<Args...>(0);
+
+static_assert(can_construct<Refined<strvec, at_most<5>>, char[4]>);
 // kaboom: no overload present to construct this.
-//extern const Refined<strvec, at_most<5>> test2;
-//constexpr const Refined<strvec, at_most<5>> test2("abcdef");
+static_assert(not can_construct<Refined<strvec, at_most<5>>, char[6]>);
+
+
+
+// let's try something else, type-level values.
+// if we wanted to have e.g. a Refined<unsigned, less_than<5>>,
+// there's not an easy to allow that at compile time via the passive;
+// we'd already have to have a less_than<5> value or stronger!
+// there are two ways to solve this:
+// pass the value in a type-level literal, or implement a dynamic throwing constructor
+// (we can still have a throw in a constexpr context, it's just not as nice at producing errors).
+// TODO...
+
+
 
 
