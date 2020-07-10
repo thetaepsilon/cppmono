@@ -129,8 +129,16 @@ static_assert(not can_construct<Refined<strvec, at_most<5>>, char[6]>);
 // there are two ways to solve this:
 // pass the value in a type-level literal, or implement a dynamic throwing constructor
 // (we can still have a throw in a constexpr context, it's just not as nice at producing errors).
-// TODO...
+// The type-level literal method has greater potential flexibility,
+// as we can then potentially mix runtime values and constant expression literals;
+// the former being known-safe *types* and the latter being known-safe *values*.
+// by chucking them into a type-level literal we can leverage the existing passive system.
 
+// come on compilers, gimme the juicy C++20 class NTTPs already...
+template <typename T, T t> struct constant;
+// this is admittedly a bit awkward due to it's verbosity;
+// one would have to write e.g. constant<int, 1> a lot.
+// note to self: perhaps a set of primitives like cint<1>, cbool<false>, etc...
 
 
 
