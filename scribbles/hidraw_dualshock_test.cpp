@@ -1,15 +1,16 @@
+extern "C" {
 // open, O_RDONLY
 #include <fcntl.h>
 // read, write (ssize_t, size_t)
 #include <unistd.h>
-// strlen (size_t)
-#include <string.h>
 // errno (ugh)
 #include <errno.h>
+}
+// strlen (size_t)
+#include <cstring>
 // uint8_t
-#include <stdint.h>
-// bool (welp, apparently legacy codebases clobbered this keyword)
-#include <stdbool.h>
+#include <cstdint>
+
 typedef uint8_t u8;
 
 
@@ -95,6 +96,9 @@ inline void show_s8le(const u8 uv, char* buf4) {
 
 
 // NB: this technically means we have a useless NUL here... oh well
+// even more NB: be careful with mutable strings here;
+// this is fine because we've declared the *storage* non-const,
+// but doing the same with a pointer would cause Problems™.
   static char imu_showbuf[26] = "# gyro +0000 +0000 +0000\n";
 //static char imu_showbuf[26] = "# gyro   +00   +00   +00\n";
 
