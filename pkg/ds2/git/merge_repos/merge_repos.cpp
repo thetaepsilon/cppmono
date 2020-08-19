@@ -197,6 +197,24 @@ int check_usage(int argc) {
 
 
 
+
+
+// maximal supported lengths for various strings related to an input repository.
+// needed to perform string concatenation directly into a (length checked!) target buffer.
+// having to dynamically allocate and possibly fail is just a bit stupid, it's entirely avoidable.
+
+
+// structure representing an individual input repository.
+// for now the various strings are assumed immortal and allocated elsewhere,
+// e.g. as const strings during development or a static sized file read buffer.
+struct input_repo {
+};
+
+
+
+
+
+
 // dummy type hacks to exploit glibc's typename based crash handler.
 struct BaseDir {};
 struct RepoDir {};
