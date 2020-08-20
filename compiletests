@@ -3,7 +3,7 @@
 find ./test \
 	-name '*.test.hpp' \( \
 		\( \
-			-exec c++17check -I ./pkg/ {} \; \
+			-exec c++17check -I ./pkg/ -I ./test/ {} \; \
 			-print \
 		\) -o -quit \
 	\);
