@@ -181,6 +181,8 @@ private:
 	// they are defined below to prevent another header masquerading.
 	template <typename E, std::size_t N>
 	friend struct array_max_bound;
+	template <typename E, std::size_t N>
+	friend struct array_min_bound;
 public:
 	// named "unsafe" to hint to the caller they should be very sure before using this.
 	// also makes it stand out in code more.
@@ -236,6 +238,29 @@ public:
 
 
 
+// the inverse of the above: an array type with known *minimum* bound.
+// this is useful as a buffer target for copies or other element-wise transforms;
+// e.g. an array_max_bound<T, N> or an array_ref<T, N> will have (at most) N elements,
+// so copying from one of those to an array_min_bound<T, N> is always safe.
+template <typename T, std::size_t MinBound>
+struct array_min_bound: public vector_ref<T> {
+private:
+	using super = vector_ref<T>;
+public:
+	template <std::size_t N>
+	constexpr inline array_min_bound(T (&array)[N]):
+		super(&array[0], N)
+	{
+		static_assert(N >= MinBound);
+	}
+
+	template <std::size_t N>
+	constexpr inline array_min_bound(const array_ref<T, N>& ref):
+		super(ref.unsafe(), N)
+	{
+		static_assert(N >= MinBound);
+	}
+};
 
 
 
