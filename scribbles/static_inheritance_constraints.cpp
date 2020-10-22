@@ -1,18 +1,5 @@
-#include <type_traits>
-#include <ds2/microstl/type_traits/enable_if.hpp>
-// can we modules yet... only having to type one import would be nice.
-using namespace ds2::microstl::type_traits;
-
-template <bool b>
-constexpr typename enable_if<b>::type accept() {}
-
-// interesting, concepts are backwards from what you'd expect,
-// when used to constrain a template parameter.
-// the T being constrained always becomes the *first* argument!
-template <typename T, typename Parent>
-concept DerivedFrom = requires(T t) {
-	accept<std::is_base_of_v<Parent, T>>();
-};
+#include <ds2/typereq/DerivedFrom.hpp>
+using namespace ds2::typereq::DerivedFrom;
 
 struct A {};
 struct B: public A {};
