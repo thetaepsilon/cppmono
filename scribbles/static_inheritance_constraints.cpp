@@ -1,7 +1,7 @@
 #include <type_traits>
 
 template <bool b>
-constexpr std::enable_if<b>::type accept() {}
+constexpr typename std::enable_if<b>::type accept() {}
 
 // interesting, concepts are backwards from what you'd expect,
 // when used to constrain a template parameter.
