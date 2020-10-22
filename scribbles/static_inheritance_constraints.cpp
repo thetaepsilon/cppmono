@@ -1,7 +1,10 @@
 #include <type_traits>
+#include <ds2/microstl/type_traits/enable_if.hpp>
+// can we modules yet... only having to type one import would be nice.
+using namespace ds2::microstl::type_traits;
 
 template <bool b>
-constexpr typename std::enable_if<b>::type accept() {}
+constexpr typename enable_if<b>::type accept() {}
 
 // interesting, concepts are backwards from what you'd expect,
 // when used to constrain a template parameter.
