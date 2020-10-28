@@ -1,7 +1,9 @@
 #!/bin/sh
+set -eu;
+path="${1:-test}"
 
 export cxx_path=cxxi;
-find ./test \
+find "${path}" \
 	-name '*.test.hpp' \( \
 		\( \
 			-exec c++17check -I ./pkg/ -I ./test/ {} \; \
