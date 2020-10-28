@@ -1,0 +1,2 @@
+#!/bin/sh
+exec cxx -std=c++20 "$@";

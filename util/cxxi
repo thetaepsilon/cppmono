@@ -1,0 +1,4 @@
+#!/bin/sh
+set -eu;
+CXX="${CXX:-clang++}";
+exec "$CXX" -std=c++14 -pedantic -Wall -Werror -O3 "$@";

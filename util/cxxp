@@ -1,0 +1,3 @@
+#!/bin/sh
+set -eu;
+root="$cxxp_root" exec "$cxxp_root/$cxxp_wrapper" "$@";
