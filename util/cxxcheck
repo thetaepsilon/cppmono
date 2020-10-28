@@ -1,2 +1,24 @@
 #!/bin/sh
-exec cxx -fsyntax-only "$@";
+set -eu;
+# dual mode C++ compiler syntax check wrapper, g++ and clang++.
+# if you don't have both installed,
+# add the shebang and the following line to a script higher in your path priority list:
+# exec cxx -fsyntax-only "$@";
+
+log() {
+	echo "# cxxcheck" "$@" >&2;
+}
+try_exec() {
+	# log "debug try" "$@";
+	"$@" || {
+		e=$?;
+		echo;
+		log "code" "$e" "cmd" "$@";
+		exit $e;
+	}
+}
+
+for cc in g++ clang++; do {
+	try_exec "$cc" -fsyntax-only -std=c++14 -pedantic -Wall -Werror "$@";
+}; done;
+
