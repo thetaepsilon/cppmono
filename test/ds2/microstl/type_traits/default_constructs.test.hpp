@@ -10,7 +10,9 @@ struct C {
 	C() = delete;
 };
 
-static_assert(default_constructs<A>);
-static_assert(not default_constructs<B>);
-static_assert(not default_constructs<C>);
+static_assert(default_constructs<A>, "because A has an implicit default constructor");
+static_assert(
+	not default_constructs<B>,
+	"because B has a explicitly specified constructor with arguments");
+static_assert(not default_constructs<C>, "because C deletes the default constructor");
 
