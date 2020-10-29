@@ -2,7 +2,6 @@
 set -eu;
 path="${1:-test}"
 
-export cxx_path=cxxi;
 find "${path}" \
 	-name '*.test.hpp' \( \
 		\( \
