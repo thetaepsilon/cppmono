@@ -1,0 +1,55 @@
+assume we have four compile-only C++ tests
+(e.g. gcc -fsyntax-only and they contain some constexpr stuff and static_asserts),
+named as follows:
+
+a.test.hpp
+b.test.14.hpp
+c.test.17.hpp
+d.test.20.hpp
+
+the number N between test. and .hpp indicates -std=c++$N (-pedantic -Wall -Werror implied).
+this could also be extended to say gnu++11 and such if absolutely required
+(preferably not though, we try to remain portable).
+if .N is missing, as for a.test.hpp, some minimum project-set standard revision is assumed.
+
+older versions of the standard can't be used to compile things only present in newer versions.
+however, new versions of the standard should be able to compile older code,
+unless something changed in an incompatible manner;
+in which case, those newer version passes may skip sufficiently old standard code.
+this is because we want code compatible with older revisions to also be forward compatible,
+if they do not require the use of some feature only present in a newer standard revision.
+
+this can be read as follows:
+a given test pass (where a test pass compile checks files against a specific standard version)
+will be asked to check all files that target either the "current" standard version
+(that of the pass in question) or previous versions (within the range supported by the project)
+such as to ensure code targeting an old version remains forward compatible.
+the test pass for said older standard revisions will ensure said code also remains compliant for those.
+
+for instance, assuming no such incompats as described above, that we recognise C++11 to C++20,
+and that C++11 is the default if not specified:
+
+c++11 pass tests A.
+c++14 pass tests A, B.
+c++17 pass tests A, B, C.
+c++20 pass tests A, B, C, D.
+
+if some rule in C++20 was found such that large amounts of C++11 compatible code would break,
+it would instead look like this:
+C++11: A
+C++14: A, B
+C++17: A, B, C
+C++20: B, C, D
+
+
+
+alternatively, for specific tests a range could be introduced.
+the naming convention for these would be foo.test.range.hpp.
+a separate config file in the directory would then specify the ranges.
+this config file would be plain text, with one test entry per line, something like follows:
+foo	11-14
+bar	14-17
+for now, only a single range would be allowed, barring any anomalies in a specific standard version.
+note also the entry simply has the file's "base name", with .test(.*)?.hpp stripped off.
+if a test.range.hpp file lacks an entry or the config file is missing,
+the relevant script(s) should raise an error.
