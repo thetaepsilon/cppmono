@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
-#include <ds2/arrays.hpp>
-#include <ds2/arrays/array_size.hpp>
+#include <ds2/array.hpp>
+#include <ds2/array/array_size.hpp>
 // XXX: oi, shouldn't #3 be included by #2? or is it better practice to keep #3?
 
 

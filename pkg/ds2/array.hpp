@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstddef>
-#include <ds2/arrays/range_pointer.hpp>
+#include <ds2/array/range_pointer.hpp>
 
 
 namespace ds2::array {
