@@ -76,7 +76,27 @@ public:
 		array_ref<T, L> ret(tag{}, data);
 		return ret;
 	}
+
+	// compile-time-checkable indexing access
+	template <size_t idx>
+	constexpr T& at() const {
+		static_assert(idx < N, "array index out of bounds");
+		return data[idx];
+	}
+
+	template <size_t ChunkSize, typename Functor>
+	constexpr void foreach_segmented(Functor&& f) {
+		constexpr const size_t count = N / ChunkSize;
+		static_assert(((ChunkSize * count) - N) == 0, "N not divisible by ChunkSize!");
+		for (size_t i = 0; i < count; i++) {
+			using target = array_ref<T, ChunkSize>;
+			using tag = typename target::__internal;
+			const auto ref = target(tag{}, &data[i * ChunkSize]);
+			f(i, ref);
+		}
+	}
 };
+
 // partial specialisation: in the zero-based case we don't need to hold anything,
 // and we can also correct an issue with the constructor (see null() note below).
 template <typename T>
@@ -110,6 +130,8 @@ public:
 		static_assert(L == 0, "array_ref cannot grow out of bounds!");
 		return null();
 	}
+
+	
 };
 
 
