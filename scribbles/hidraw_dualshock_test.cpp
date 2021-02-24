@@ -94,6 +94,36 @@ inline void show_s8le(const u8 uv, char* buf4) {
 }
 
 
+
+// alright, can I has a proper structs for this already...
+// the dualshock 4 HID data uses biased representations a lot,
+// whereby it's an unsigned field representing a value which is field_value - (2^(bitwidth - 1)).
+// furthermore like a lot of HID reports the bytes are packed and unaligned.
+// the C++ standard therefore dictates we must copy the bytes into a properly aligned variable,
+// instead of trying to do a direct unaligned load (I don't care if x86 can do that).
+// for the most part, the fields are little endian.
+// (I wonder if they did this because the PS4 is an x86 system. any bets they do unaligned loads?)
+
+// thusly, let us first define some helper types.
+// XXX SCRIPT: candidate-header-separation START
+template <size_t N>
+struct unaligned_field_base {
+	u8 bytes[N];
+};
+
+struct unaligned_u8: public unaligned_field_base<1> {
+	u8 load() const { return bytes[0]; }
+};
+
+template <typename T>
+struct load_unaligned_helper: public unaligned_field_base<sizeof(T)> {
+	constexpr static const auto width = sizeof(T);
+};
+
+
+
+
+
 // NB: this technically means we have a useless NUL here... oh well
 // even more NB: be careful with mutable strings here;
 // this is fine because we've declared the *storage* non-const,
@@ -123,7 +153,7 @@ int main(int argc, char** argv) {
 		size_t outsize = hexline(buf, hexbuf, size);
 		ssize_t written = write(1, hexbuf, outsize);
 		if (written < 0) return bail("# !write\n", 9);
-		if (written != outsize) return bail("# !write:short\n", 15);
+		if ((size_t)written != outsize) return bail("# !write:short\n", 15);
 
 		if ((size == 64) && (buf[0] == '\x01')) {
 			char* showbuf = imu_showbuf;
