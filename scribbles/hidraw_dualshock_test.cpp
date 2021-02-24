@@ -24,7 +24,6 @@ inline int bail(const char* msg, size_t s) {
 
 #define BUFSZ 4096
 static u8 buf[BUFSZ];
-static char hexbuf[BUFSZ * 3];
 
 const char hex[] = "0123456789ABCDEF";
 // bugger printf. I don't need runtime format string parsing!
@@ -120,6 +119,7 @@ int main(int argc, char** argv) {
 		ssize_t size = read(fd, buf, BUFSZ);
 		if (size < 0) return bail("# !read\n", 8);
 
+		static char hexbuf[BUFSZ * 3];
 		size_t outsize = hexline(buf, hexbuf, size);
 		ssize_t written = write(1, hexbuf, outsize);
 		if (written < 0) return bail("# !write\n", 9);
@@ -133,7 +133,7 @@ int main(int argc, char** argv) {
 			//show_s8le(buf[14], &showbuf[8]);
 			//show_s8le(buf[16], &showbuf[14]);
 			//show_s8le(buf[18], &showbuf[20]);
-			written = write(1, showbuf, 25);
+			ssize_t written = write(1, showbuf, 25);
 			(void)written;
 		}
 	}
